@@ -4,40 +4,52 @@ import moment from 'moment';
 
 export class Timer extends React.Component {
   constructor(props) {
-    console.disableYellowBox = true;
-    console.warn('construct');
-
-    super(props);
-    this.reset();
-    setInterval(this.tick, 1000);
+    console.disableYellowBox = true
+    console.warn('construct')
+    super(props)
+    this.state = {
+      initDate: moment().minutes(0).seconds(0),
+      remaining: moment().minutes(0).seconds(0)
+    }
   }
 
   tick = () => {
-    console.warn('tick' + this.state);
+    console.warn('tick' + JSON.stringify(this.state));
     if (this.state && this.state.initDate) {
-      let hours = moment().diff(this.state.initDate, 'hours');
-      let minutes = moment().diff(this.state.initDate, 'minutes');
-      let seconds = moment().diff(this.state.initDate, 'seconds');
-      let remaining = moment().hours(hours).minutes(minutes).seconds(seconds);
+      let timeWhenFinished = this.state.initDate.clone().add(1, 'minutes').add(30, 'seconds');
+      console.warn("finished at " + timeWhenFinished.format("HH:mm:ss"))
+      let remaining = moment
+        .utc(moment(moment(), "DD/MM/YYYY HH:mm:ss")
+          .diff(moment(timeWhenFinished, "DD/MM/YYYY HH:mm:ss")))
+      console.warn("remain " + remaining.format("HH:mm:ss"))
       this.setState({
+        ...this.state,
         remaining: remaining
       });
     }
   }
 
   reset = () => {
-    let initDate = moment();
-    this.state = {
-      initDate: initDate
+    if (this.interval) {
+      clearInterval(this.interval)
     }
+    this.state = {
+      initDate: moment()
+    }
+    this.interval = setInterval(this.tick, 1000);
+  }
+
+  _onPressButton = () => {
+    this.reset();
   }
 
   render() {
-    console.warn('render' + this.state.initDate.format("HH:mm"));
-
     if (!this.state.remaining) return false;
     return (
-      <Text>{this.state.remaining.format("mm:ss")}</Text>
+      <View>
+        <Text>{this.state.remaining.format("mm:ss")}</Text>
+        <Button onPress={this._onPressButton} title="Reset" />
+      </View>
     );
   }
 }
@@ -45,15 +57,10 @@ export class Timer extends React.Component {
 
 export default class App extends React.Component {
 
-  _onPressButton() {
-
-  }
-
   render() {
     return (
       <View style={styles.container}>
         <Timer></Timer>
-        <Button onPress={this._onPressButton} title="Reset" />
       </View>
     );
   }
