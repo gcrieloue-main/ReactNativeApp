@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Button } from 'react-native';
+import { StyleSheet, Text, View, Button, TouchableHighlight } from 'react-native';
 import moment from 'moment';
 
 export class Timer extends React.Component {
@@ -8,20 +8,16 @@ export class Timer extends React.Component {
     console.warn('construct')
     super(props)
     this.state = {
-      initDate: moment().minutes(0).seconds(0),
-      remaining: moment().minutes(0).seconds(0)
+      initDate: moment().hours(0).minutes(0).seconds(0),
+      remaining: moment().hours(0).minutes(0).seconds(0)
     }
   }
 
   tick = () => {
-    console.warn('tick' + JSON.stringify(this.state));
     if (this.state && this.state.initDate) {
-      let timeWhenFinished = this.state.initDate.clone().add(1, 'minutes').add(30, 'seconds');
-      console.warn("finished at " + timeWhenFinished.format("HH:mm:ss"))
-      let remaining = moment
-        .utc(moment(moment(), "DD/MM/YYYY HH:mm:ss")
-          .diff(moment(timeWhenFinished, "DD/MM/YYYY HH:mm:ss")))
-      console.warn("remain " + remaining.format("HH:mm:ss"))
+      let timeWhenFinished = this.state.initDate.clone().add(90, 'seconds');
+      let duration = moment.duration(timeWhenFinished.diff(moment()))
+      let remaining = moment.utc(duration.as('milliseconds'))
       this.setState({
         ...this.state,
         remaining: remaining
@@ -39,17 +35,24 @@ export class Timer extends React.Component {
     this.interval = setInterval(this.tick, 1000);
   }
 
-  _onPressButton = () => {
+  _onPress = () => {
     this.reset();
   }
 
   render() {
     if (!this.state.remaining) return false;
+    let text = "GO";
+    if (!(this.state.remaining.hours() == 0
+      && this.state.remaining.minutes() == 0
+      && this.state.remaining.seconds() == 0)) {
+      text = this.state.remaining.format("mm:ss")
+    }
     return (
-      <View>
-        <Text>{this.state.remaining.format("mm:ss")}</Text>
-        <Button onPress={this._onPressButton} title="Reset" />
-      </View>
+      <TouchableHighlight onPress={this._onPress}>
+        <View style={styles.timer}>
+          <Text style={styles.text}>{text}</Text>
+        </View>
+      </TouchableHighlight >
     );
   }
 }
@@ -78,4 +81,7 @@ const styles = StyleSheet.create({
     color: 'yellow',
     fontSize: 64,
   },
+  text: {
+    fontSize: 128
+  }
 });
